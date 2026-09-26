@@ -127,9 +127,10 @@ def is_owner_listing(ad: Dict[str, Any]) -> bool:
     # 2. Проверка внутренних параметров (флаг rem = Real Estate Management)
     raw_params = ad.get("ad_parameters", [])
     params_dict = {}
-    for p in raw_params:
-        if isinstance(p, dict) and "p" in p:
-            params_dict[p["p"]] = p.get("v")
+    if isinstance(raw_params, list):
+        for p in raw_params:
+            if isinstance(p, dict) and "p" in p:
+                params_dict[p["p"]] = p.get("v")
 
     if params_dict.get("rem") is True:
         return False
@@ -144,7 +145,7 @@ def is_owner_listing(ad: Dict[str, Any]) -> bool:
 
 
 def format_flat_message(ad: Dict[str, Any]) -> str:
-    """Форматирование карточки квартиры для Telegram с безопасным парсингом цен."""
+    """Форматирование карточки квартиры для Telegram с безопасным парсингом цен и адреса."""
     ad_id = str(ad.get("ad_id", ""))
     ad_link = ad.get("ad_link") or f"https://re.kufar.by/vi/{ad_id}"
     subject = ad.get("subject") or "Квартира в аренду"
@@ -156,23 +157,36 @@ def format_flat_message(ad: Dict[str, Any]) -> str:
     except (ValueError, TypeError):
         usd_val = 0
 
-    # Обработка цены в BYN (Kufar часто отдает в копейках, делим на 100)
+    # Обработка цены в BYN (Kufar отдает в копейках, делим на 100)
     raw_price_byn = ad.get("price_byn", "0")
     try:
         byn_val = int(float(raw_price_byn) / 100)
     except (ValueError, TypeError):
         byn_val = 0
 
-    # Сбор параметров: комнатность, адрес, метро
+    # Сбор параметров: комнатность, метро
     rooms = "Не указано"
     metro = ""
-    for p in ad.get("ad_parameters", []):
-        if p.get("p") == "rooms":
-            rooms = str(p.get("vl") or p.get("v") or "1")
-        elif p.get("p") == "metro":
-            metro = str(p.get("vl") or p.get("v") or "")
+    raw_ad_params = ad.get("ad_parameters", [])
+    if isinstance(raw_ad_params, list):
+        for p in raw_ad_params:
+            if isinstance(p, dict):
+                if p.get("p") == "rooms":
+                    rooms = str(p.get("vl") or p.get("v") or "1")
+                elif p.get("p") == "metro":
+                    metro = str(p.get("vl") or p.get("v") or "")
 
-    address = ad.get("account_parameters", {}).get("address", "Минск")
+    # Безопасное извлечение адреса (может быть словарем или списком)
+    address = "Минск"
+    acc_params = ad.get("account_parameters")
+    if isinstance(acc_params, dict):
+        address = acc_params.get("address", "Минск")
+    elif isinstance(acc_params, list):
+        for item in acc_params:
+            if isinstance(item, dict) and item.get("p") == "address":
+                address = item.get("vl") or item.get("v") or "Минск"
+                break
+
     metro_line = f"\n🚇 <b>Метро:</b> {metro}" if metro else ""
 
     message = (
