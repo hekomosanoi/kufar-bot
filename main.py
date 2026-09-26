@@ -18,8 +18,8 @@ logging.basicConfig(
 logger = logging.getLogger("KufarSniper")
 
 # Токены: берутся из переменных окружения или задаются напрямую
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "YOUR_TELEGRAM_BOT_TOKEN_HERE")
-TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "YOUR_TELEGRAM_CHAT_ID_HERE")
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "8949993502:AAGjFZum_y--3uVxsxsZbC1ljX9RXjw0x2M")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "7805601948")
 
 # Настройки API Kufar
 # cat=1010 (Аренда квартир), typ=let (Снять долгосрочно), rgn=7 (Минск)
